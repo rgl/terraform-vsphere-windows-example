@@ -154,7 +154,7 @@ resource "vsphere_virtual_machine" "example" {
     "guestinfo.metadata" = base64gzip(jsonencode({
       "admin-username": var.winrm_username,
       "admin-password": var.winrm_password,
-      "public-keys": [trimspace(file("~/.ssh/id_rsa.pub"))],
+      "public-keys-data": trimspace(file("~/.ssh/id_rsa.pub")),
     })),
     "guestinfo.metadata.encoding" = "gzip+base64",
     "guestinfo.userdata" = data.template_cloudinit_config.example.rendered,
