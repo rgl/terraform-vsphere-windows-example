@@ -126,7 +126,7 @@ resource "vsphere_virtual_machine" "example" {
   guest_id = data.vsphere_virtual_machine.windows_template.guest_id
   num_cpus = 2
   num_cores_per_socket = 2
-  memory = 1024
+  memory = 4*1024
   resource_pool_id = data.vsphere_compute_cluster.compute_cluster.resource_pool_id
   datastore_id = data.vsphere_datastore.datastore.id
   scsi_type = data.vsphere_virtual_machine.windows_template.scsi_type
