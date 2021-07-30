@@ -33,7 +33,9 @@ export TF_VAR_vsphere_datastore='Datastore'
 export TF_VAR_vsphere_network='VM Network'
 export TF_VAR_vsphere_windows_template='vagrant-templates/windows-2019-amd64-vsphere'
 export TF_VAR_winrm_username='vagrant'
-export TF_VAR_winrm_password='vagrant'
+# NB this value must meet the Windows password policy requirements.
+#    see https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/password-must-meet-complexity-requirements
+export TF_VAR_winrm_password='HeyH0Password'
 export GOVC_INSECURE='1'
 export GOVC_URL="https://$TF_VAR_vsphere_server/sdk"
 export GOVC_USERNAME="$TF_VAR_vsphere_user"
