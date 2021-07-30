@@ -50,6 +50,10 @@ variable "vsphere_datastore" {
   default = "Datastore"
 }
 
+variable "vsphere_folder" {
+  default = "example"
+}
+
 variable "vsphere_windows_template" {
   default = "vagrant-templates/windows-2019-amd64-vsphere"
 }
@@ -137,8 +141,16 @@ data "template_cloudinit_config" "example" {
   }
 }
 
-# see https://www.terraform.io/docs/providers/vsphere/r/virtual_machine.html
+# see https://registry.terraform.io/providers/hashicorp/vsphere/latest/docs/resources/folder
+resource "vsphere_folder" "folder" {
+  path = var.vsphere_folder
+  type = "vm"
+  datacenter_id = data.vsphere_datacenter.datacenter.id
+}
+
+# see https://registry.terraform.io/providers/hashicorp/vsphere/latest/docs/resources/virtual_machine
 resource "vsphere_virtual_machine" "example" {
+  folder = vsphere_folder.folder.path
   name = var.prefix
   guest_id = data.vsphere_virtual_machine.windows_template.guest_id
   num_cpus = 2
