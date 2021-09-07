@@ -21,12 +21,56 @@ terraform {
   }
 }
 
+variable "vm_hostname_prefix" {
+  default = "example"
+}
+
 variable "vm_count" {
   description = "number of VMs to create"
   type = number
   default = 1
   validation {
     condition = var.vm_count >= 1
+    error_message = "Must be 1 or more."
+  }
+}
+
+variable "vm_cpu" {
+  description = "number of CPUs per VM"
+  type = number
+  default = 2
+  validation {
+    condition = var.vm_cpu >= 1
+    error_message = "Must be 1 or more."
+  }
+}
+
+variable "vm_memory" {
+  description = "amount of memory [GiB] per VM"
+  type = number
+  default = 4
+  validation {
+    condition = var.vm_memory >= 1
+    error_message = "Must be 1 or more."
+  }
+}
+
+variable "vm_disk_os_size" {
+  description = "minimum size of the OS disk [GiB]"
+  type = number
+  default = 60
+  validation {
+    condition = var.vm_disk_os_size >= 1
+    error_message = "Must be 1 or more."
+  }
+}
+
+variable "vm_disk_data_size" {
+  description = "size of the DATA disk [GiB]"
+  type = number
+  default = 1
+  validation {
+    condition = var.vm_disk_data_size >= 1
     error_message = "Must be 1 or more."
   }
 }
@@ -127,7 +171,7 @@ data "template_cloudinit_config" "example" {
     content_type = "text/cloud-config"
     content = <<-EOF
       #cloud-config
-      hostname: example${count.index}
+      hostname: ${var.vm_hostname_prefix}${count.index}
       timezone: Asia/Tbilisi
       EOF
   }
@@ -165,24 +209,24 @@ resource "vsphere_virtual_machine" "example" {
   folder = vsphere_folder.folder.path
   name = "${var.prefix}${count.index}"
   guest_id = data.vsphere_virtual_machine.windows_template.guest_id
-  num_cpus = 2
-  num_cores_per_socket = 2
-  memory = 4*1024
+  num_cpus = var.vm_cpu
+  num_cores_per_socket = var.vm_cpu
+  memory = var.vm_memory*1024
+  enable_disk_uuid = true # NB the VM must have disk.EnableUUID=1 for, e.g., k8s persistent storage.
   resource_pool_id = data.vsphere_compute_cluster.compute_cluster.resource_pool_id
   datastore_id = data.vsphere_datastore.datastore.id
   scsi_type = data.vsphere_virtual_machine.windows_template.scsi_type
   disk {
     unit_number = 0
     label = "os"
-    # NB we add 2 [GiB] to test the C: drive expansion.
-    size = data.vsphere_virtual_machine.windows_template.disks.0.size + 2
+    size = max(data.vsphere_virtual_machine.windows_template.disks.0.size, var.vm_disk_os_size)
     eagerly_scrub = data.vsphere_virtual_machine.windows_template.disks.0.eagerly_scrub
     thin_provisioned = data.vsphere_virtual_machine.windows_template.disks.0.thin_provisioned
   }
   disk {
     unit_number = 1
     label = "data"
-    size = 6 # [GiB]
+    size = var.vm_disk_data_size # [GiB]
     eagerly_scrub = data.vsphere_virtual_machine.windows_template.disks.0.eagerly_scrub
     thin_provisioned = data.vsphere_virtual_machine.windows_template.disks.0.thin_provisioned
   }
