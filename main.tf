@@ -160,7 +160,14 @@ data "vsphere_virtual_machine" "windows_template" {
   datacenter_id = data.vsphere_datacenter.datacenter.id
 }
 
+# see https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid
+resource "random_uuid" "example" {
+  count = var.vm_count
+}
+
 # a multipart cloudbase-init cloud-config.
+# NB any added script must be idempotent; they might be executed more than
+#    once (e.g. at the next boot(s)).
 # see https://github.com/cloudbase/cloudbase-init
 # see https://cloudbase-init.readthedocs.io/en/latest/userdata.html#userdata
 # see https://www.terraform.io/docs/providers/template/d/cloudinit_config.html
@@ -173,6 +180,23 @@ data "template_cloudinit_config" "example" {
       #cloud-config
       hostname: ${var.vm_hostname_prefix}${count.index}
       timezone: Asia/Tbilisi
+      write_files:
+        # set the VMware Tools configuration file.
+        - path: C:\Documents and Settings\All Users\Application Data\VMware\VMware Tools\tools.conf
+          permissions: '0620'
+          content: |
+            [guestinfo]
+            # do not exclude any NICs because calico on windows will move
+            # the main NIC Ethernet0 IP configuration to the vSwitch
+            # vEthernet (Ethernet0) NIC.
+            # NB without this, VMware Tools does not report the machine IP
+            #    address to vSphere and terraform will not be able to find
+            #    the VM IP address and will fail to connect to it.
+            # NB default is: exclude-nics=vEthernet*
+            # see https://kb.vmware.com/s/article/1007873
+            # TODO find a way to configure Calico to name the NIC to
+            #      something that does not have a vEthernet prefix.
+            exclude-nics=
       EOF
   }
   part {
@@ -194,6 +218,17 @@ data "template_cloudinit_config" "example" {
       Get-TimeZone
       EOF
   }
+  part {
+    filename = "install-windows-feature-containers.ps1"
+    content_type = "text/x-shellscript"
+    content = <<-EOF
+      #ps1_sysnative
+      $result = Install-WindowsFeature Containers
+      if ($result.RestartNeeded -eq 'Yes') {
+        Exit 1001 # signal cloudbase-init to reboot.
+      }
+      EOF
+  }
 }
 
 # see https://registry.terraform.io/providers/hashicorp/vsphere/latest/docs/resources/folder
@@ -206,6 +241,7 @@ resource "vsphere_folder" "folder" {
 # see https://registry.terraform.io/providers/hashicorp/vsphere/latest/docs/resources/virtual_machine
 resource "vsphere_virtual_machine" "example" {
   count = var.vm_count
+  annotation = "instance-id: ${random_uuid.example[count.index].result}"
   folder = vsphere_folder.folder.path
   name = "${var.prefix}${count.index}"
   guest_id = data.vsphere_virtual_machine.windows_template.guest_id
@@ -241,6 +277,9 @@ resource "vsphere_virtual_machine" "example" {
   #    exposed by cloudbase-init as a cloud-init datasource.
   extra_config = {
     "guestinfo.metadata" = base64gzip(jsonencode({
+      # TODO why using instance-id seems to brake the "admin-username/admin-password"
+      #      as I can no longer login into the machine?
+      "instance-id": random_uuid.example[count.index].result,
       "admin-username": var.winrm_username,
       "admin-password": var.winrm_password,
       "public-keys-data": trimspace(file("~/.ssh/id_rsa.pub")),
