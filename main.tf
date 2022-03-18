@@ -109,7 +109,7 @@ variable "vsphere_folder" {
 }
 
 variable "vsphere_windows_template" {
-  default = "vagrant-templates/windows-2019-amd64-vsphere"
+  default = "vagrant-templates/windows-2022-amd64-vsphere"
 }
 
 variable "winrm_username" {

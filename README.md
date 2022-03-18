@@ -1,6 +1,6 @@
 # Usage (Ubuntu 20.04 host)
 
-Install the [Windows 2019 VM template](https://github.com/rgl/windows-vagrant).
+Install the [Windows 2022 VM template](https://github.com/rgl/windows-vagrant).
 
 Install Terraform and govc (Ubuntu):
 
@@ -40,7 +40,7 @@ export TF_VAR_vsphere_compute_cluster='Cluster'
 export TF_VAR_vsphere_datastore='Datastore'
 export TF_VAR_vsphere_network='VM Network'
 export TF_VAR_vsphere_folder='example'
-export TF_VAR_vsphere_windows_template='vagrant-templates/windows-2019-amd64-vsphere'
+export TF_VAR_vsphere_windows_template='vagrant-templates/windows-2022-amd64-vsphere'
 export TF_VAR_winrm_username='vagrant'
 # NB this value must meet the Windows password policy requirements.
 #    see https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/password-must-meet-complexity-requirements
