@@ -66,8 +66,31 @@ govc find # find all managed objects
 terraform init
 terraform plan -out=tfplan
 time terraform apply tfplan
+```
+
+Login into the machine using SSH:
+
+```bash
 ssh-keygen -f ~/.ssh/known_hosts -R "$(terraform output --json ips | jq -r '.[0]')"
 ssh "vagrant@$(terraform output --json ips | jq -r '.[0]')"
-exit
-time terraform destroy --auto-approve
+type C:\\cloudinit-config-example.ps1.log
+exit # ssh
+```
+
+Login into the machine using PowerShell Remoting over SSH:
+
+```bash
+pwsh
+Enter-PSSession -HostName "vagrant@$(terraform output --json ips | jq -r '.[0]')"
+$PSVersionTable
+whoami /all
+Get-Content C:/cloudinit-config-example.ps1.log
+exit # Enter-PSSession
+exit # pwsh
+```
+
+Destroy the infrastructure:
+
+```bash
+time terraform destroy -auto-approve
 ```
