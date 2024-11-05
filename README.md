@@ -5,11 +5,11 @@ Install the [Windows 2022 VM template](https://github.com/rgl/windows-vagrant).
 Install Terraform and govc (Ubuntu):
 
 ```bash
-wget https://releases.hashicorp.com/terraform/1.3.7/terraform_1.3.7_linux_amd64.zip
-unzip terraform_1.3.7_linux_amd64.zip
+wget https://releases.hashicorp.com/terraform/1.9.8/terraform_1.9.8_linux_amd64.zip
+unzip terraform_1.9.8_linux_amd64.zip
 sudo install terraform /usr/local/bin
 rm terraform terraform_*_linux_amd64.zip
-wget https://github.com/vmware/govmomi/releases/download/v0.29.0/govc_Linux_x86_64.tar.gz
+wget https://github.com/vmware/govmomi/releases/download/v0.45.1/govc_Linux_x86_64.tar.gz
 tar xf govc_Linux_x86_64.tar.gz govc
 sudo install govc /usr/local/bin/govc
 rm govc govc_Linux_x86_64.tar.gz
@@ -18,8 +18,8 @@ rm govc govc_Linux_x86_64.tar.gz
 Install Terraform and govc (Windows):
 
 ```bash
-choco install -y --version 1.3.7 terraform
-choco install -y --version 0.29.0 govc
+choco install -y --version 1.9.8 terraform
+choco install -y --version 0.45.1 govc
 ```
 
 Save your environment details as a script that sets the terraform variables from environment variables, e.g.:
